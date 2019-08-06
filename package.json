@@ -1,0 +1,31 @@
+{
+  "name": "@shopfront/lumberjack",
+  "version": "0.1.0",
+  "main": "./lib/index.js",
+  "license": "MIT",
+  "description": "A plugable utility to assist with logging and the storage of logs",
+  "homepage": "https://bitbucket.org/sasonline/lumberjack",
+  "bugs": "https://bitbucket.org/sasonline/lumberjack/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://bitbucket.org/sasonline/lumberjack.git"
+  },
+  "author": "Shopfront <api@shopfront.com.au> (https://shopfront.com.au)",
+  "contributors": [
+    "Nicholas Clark"
+  ],
+  "private": false,
+  "devDependencies": {
+    "@types/node": "^12.6.9",
+    "tslint": "^5.18.0",
+    "typescript": "^3.5.3"
+  },
+  "scripts": {
+    "type-check": "tsc --noEmit",
+    "type-check:watch": "yarn run type-check --watch",
+    "build": "yarn run build-ts && yarn run tslint",
+    "build-ts": "tsc",
+    "watch-ts": "tsc -w",
+    "tslint": "tslint -c tslint.json -p tsconfig.json"
+  }
+}

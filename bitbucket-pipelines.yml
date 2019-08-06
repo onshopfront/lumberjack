@@ -1,0 +1,22 @@
+image: node:10.6.0
+
+pipelines:
+  default:
+    - step:
+        name: Build
+        script:
+          - npm install
+          - npm run-script build
+    - step:
+        name: Publish
+        trigger: manual
+        deployment: production
+        script:
+          - npm install
+          - npm run-script build
+          - npm version minor -m "Upgrade to %s [skip ci]"
+          - git push && git push --tags
+          - pipe: atlassian/npm-publish:0.2.0
+            variables:
+              NPM_TOKEN: $NPM_TOKEN
+              EXTRA_ARGS: --access=public
