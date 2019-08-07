@@ -68,20 +68,10 @@ export function printf(message: string, replacements: Array<any>): string {
 
     if(replacements.length) {
         for(let i = 0, l = replacements.length; i < l; i++) {
-            if(typeof replacements[i].toString === "function") {
+            if(typeof replacements[i] === "object") {
+                replacements[i] = encode(replacements[i]);
+            } else if(typeof replacements[i].toString === "function") {
                 replacements[i] = replacements[i].toString();
-            } else if(typeof replacements[i] === "object") {
-                const encoded = JSON.stringify(replacements[i]);
-                if(encoded === "{}") {
-                    if(typeof replacements[i].constructor === "object") {
-                        if(typeof replacements[i].constructor.name === "string") {
-                            replacements[i] = replacements[i].constructor.name;
-                            continue;
-                        }
-                    }
-                }
-
-                replacements[i] = encoded;
             }
         }
 
@@ -114,4 +104,30 @@ export function intersectArrays(...arrays: Array<Array<any>>): Array<any> {
     }
 
     return results;
+}
+
+/**
+ * Encode an item into a string
+ * @param item
+ * @returns {string}
+ */
+export function encode(item: any): string {
+    if(typeof item === "object") {
+        const encoded = JSON.stringify(item);
+        if(encoded === "{}" && Object.keys(item).length !== 0) {
+            if(typeof item.constructor === "object") {
+                if(typeof item.constructor.name === "string") {
+                    return item.constructor.name;
+                }
+            }
+        }
+
+        return encoded;
+    }
+
+    if(typeof item.toString === "function") {
+        return item.toString();
+    }
+
+    return item;
 }

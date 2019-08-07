@@ -106,14 +106,7 @@ export class Lumberjack {
 
             return log;
         } else if(typeof message === "object") {
-            let log = JSON.stringify(message);
-            if(log === "{}") {
-                if(typeof message.constructor === "object") {
-                    if(typeof message.constructor.name === "string") {
-                        log = message.constructor.name;
-                    }
-                }
-            }
+            let log = Utilities.encode(message);
 
             for(let i = 0, l = optionalParams.length; i < l; i++) {
                 log = `${log} ${this.assembleMessage(optionalParams[i], [])}`;

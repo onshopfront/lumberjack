@@ -143,6 +143,7 @@ export class IndexedDBBackend extends BaseBackend {
         this.toFlush.push({
             ...details,
             timestamp: details.timestamp.getTime(),
+            arguments: details.arguments.map(argument => Utilities.encode(argument)),
             message,
         });
     }
