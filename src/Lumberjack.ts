@@ -78,8 +78,17 @@ export class Lumberjack {
                 const trace = (new Error()).stack;
                 if(trace) {
                     const split = trace.split("\n");
-                    const line  = split[split.length - 3].trim();
-                    append      = `${line}`;
+                    let index   = split.length - 1;
+                    let line    = split[index];
+                    while(index > 0 && line.includes("Lumberjack.js")) {
+                        index--;
+                        line = split[index];
+                    }
+
+                    line = line.trim();
+                    if(line !== "Error") {
+                        append = `${line}`;
+                    }
                 }
             }
 
