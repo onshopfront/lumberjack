@@ -30,6 +30,19 @@ export class Lumberjack {
         this.namespaces = [];
         this.timers     = new Map();
         this.options    = options;
+
+        this.debug          = this.debug.bind(this);
+        this.error          = this.error.bind(this);
+        this.group          = this.group.bind(this);
+        this.groupCollapsed = this.groupCollapsed.bind(this);
+        this.groupEnd       = this.groupEnd.bind(this);
+        this.info           = this.info.bind(this);
+        this.log            = this.log.bind(this);
+        this.table          = this.table.bind(this);
+        this.time           = this.time.bind(this);
+        this.timeEnd        = this.timeEnd.bind(this);
+        this.trace          = this.trace.bind(this);
+        this.warn           = this.warn.bind(this);
     }
 
     /**
