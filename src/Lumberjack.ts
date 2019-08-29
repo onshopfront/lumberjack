@@ -428,7 +428,7 @@ export class Lumberjack {
      */
     public warn(message?: any, ...optionalParams: Array<any>): void {
         message = this.decorateMessage(message);
-        this.console.log(message, ...optionalParams);
+        this.console.warn(message, ...optionalParams);
         this.sendToBackend(VerbosityLevel.WARNING, message, optionalParams);
     }
 }
