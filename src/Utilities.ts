@@ -70,7 +70,7 @@ export function printf(message: string, replacements: Array<any>): string {
         for(let i = 0, l = replacements.length; i < l; i++) {
             if(typeof replacements[i] === "object") {
                 replacements[i] = encode(replacements[i]);
-            } else if(typeof replacements[i].toString === "function") {
+            } else if(!!replacements[i] && typeof replacements[i].toString === "function") {
                 replacements[i] = replacements[i].toString();
             }
         }
@@ -112,7 +112,9 @@ export function intersectArrays(...arrays: Array<Array<any>>): Array<any> {
  * @returns {string}
  */
 export function encode(item: any): string {
-    if(typeof item === "object") {
+    if (!item) {
+        return "";
+    } else if(typeof item === "object") {
         const encoded = JSON.stringify(item);
         if(encoded === "{}" && Object.keys(item).length !== 0) {
             if(typeof item.constructor === "object") {
