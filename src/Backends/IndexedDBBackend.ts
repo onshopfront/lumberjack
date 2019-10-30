@@ -2,7 +2,8 @@ import { BaseBackend, LogDetails } from "../BaseBackend";
 import * as Utilities from "../Utilities";
 
 interface IndexedDBBackendOptions {
-    expire: null | number;
+    expire    : null | number;
+    flushTimer: number;
 }
 
 type StoredDetails = Omit<LogDetails, "timestamp"> & {
@@ -24,7 +25,8 @@ export class IndexedDBBackend extends BaseBackend {
         this.toFlush = [];
 
         this.options = {
-            expire: 7 * 24 * 60 * 60 * 1000, // 7 Days
+            expire    : 7 * 24 * 60 * 60 * 1000, // 7 Days
+            flushTimer: 5000, // 5 seconds
             ...options,
         };
 
@@ -103,7 +105,7 @@ export class IndexedDBBackend extends BaseBackend {
      * Prepare to flush the logs to the database
      */
     protected setupFlush(): void {
-        setInterval(this.flush, 5000);
+        setInterval(this.flush, this.options.flushTimer);
         this.global.addEventListener("beforeunload", this.flush);
     }
 

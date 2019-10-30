@@ -254,6 +254,7 @@ The `IndexedDBBackend` constructor accepts an object that contains the following
 
 - `expire`: (Optional) Null or Number - If null, logs will never expire, if a number, it is the number of seconds until
 a log expires and will be deleted. This defaults to 7 days.
+- `flushTimer`: (Optional) Number - The interval to flush items to IndexedDB. This defaults to 5 seconds. 
 
 The `IndexedDBBackend` also includes an export function which retrieves all of the stored logs. It has the following
 signature:
