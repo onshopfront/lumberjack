@@ -40,12 +40,16 @@ import { IndexedDBBackend } from "@shopfront/lumberjack/Backends/IndexedDBBacken
 // If you're using Node.js, you'll want to use the file back-end by default
 import { FileBackend } from "@shopfront/lumberjack/Backends/FileBackend";
 
+// Use a unique id if you want to fully utilize the contextId option
+const uniqueId = generateUUID();
+
 const isBrowser = true;
 const backend   = isBrowser ? new IndexedDBBackend() : new FileBackend();
 const options   = {
     timestamp      : true,
     trace          : true,
     applicationName: "Lumberjack",
+    contextId      : uniqueId,
 };
 
 const lumberjack = new Lumberjack(backend, options);
@@ -82,6 +86,7 @@ Creates the Lumberjack object.
   - `options.timestamp`: (Optional) Boolean - whether to include the timestamp in the log,
   - `options.trace`: (Optional) Boolean - whether to include a basic trace of where the call came from (file and line) in the log,
   - `options.applicationName`: (Optional) String - The name of the application to include in the log
+  - `options.contextId`: (Optional) String - Diagnostic ID that's used for specifying what context lumberjack is running (e.g. Main Thread and Worker Thread)
   
 *Returns:* An instance of `Lumberjack`.
 

@@ -5,6 +5,7 @@ interface LumberjackOptions {
     timestamp?      : boolean;
     trace?          : boolean;
     applicationName?: string;
+    contextId?      : string;
 }
 
 export enum VerbosityLevel {
@@ -158,6 +159,7 @@ export class Lumberjack {
                 ...optionalParams,
             ],
             namespaces: this.namespaces,
+            contextId : this.options.contextId || "Default",
             level,
         });
     }

@@ -5,6 +5,7 @@ export interface LogDetails {
     arguments : Array<any>;
     namespaces: Array<string>;
     level     : VerbosityLevel;
+    contextId : string;
 }
 
 export abstract class BaseBackend {
