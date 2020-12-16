@@ -182,4 +182,48 @@ export class IndexedDBBackend extends BaseBackend {
             };
         });
     }
+
+    public exportBatch(entryRunner: (entries: Array<StoredDetails>) => Promise<void>, entriesAtOnce: number = 100): Promise<void> {
+        if(!this.indexedDB) {
+            throw new Error("IndexedDB has not been initialised");
+        }
+
+        const objectStore = this.indexedDB.transaction("logs").objectStore("logs");
+
+        return new Promise((res, rej) => {
+            let buffered: Array<StoredDetails> = [];
+            const opened = objectStore.openCursor();
+            let empty    = false;
+            const remainingPromises: Array<Promise<void>> = [];
+
+            const sendBuffered = () => {
+                if(buffered.length >= entriesAtOnce || empty) {
+                    remainingPromises.push(entryRunner(buffered));
+                    buffered = [];
+                }
+
+                if(empty) {
+                    Promise.all(remainingPromises)
+                        .then(() => res());
+                }
+            };
+
+            opened.onerror = event => {
+                this.global.console.error("Lumberjack: Error occurred while exporting", event);
+                rej(event);
+            };
+
+            opened.onsuccess = event => {
+                const cursor = (event.target as IDBRequest).result;
+                if(cursor) {
+                    buffered.push(cursor.value);
+                    cursor.continue();
+                } else {
+                    empty = true;
+                }
+
+                sendBuffered();
+            };
+        });
+    }
 }
