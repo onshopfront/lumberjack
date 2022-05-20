@@ -1,6 +1,6 @@
 {
   "name": "@shopfront/lumberjack",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "main": "./lib/index.js",
   "license": "MIT",
   "description": "A plugable utility to assist with logging and the storage of logs",
