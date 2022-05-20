@@ -1,4 +1,5 @@
-#Lumberjack
+# Lumberjack
+
 Lumberjack is a plugable utility to assist with the display and storage of logs.
 
 By default, Lumberjack comes with two back-ends built in. One for use in the browser that stores logs in IndexedDB
@@ -11,7 +12,8 @@ Due to our current resources, Lumberjack only supports the same platforms that S
 
 Lumberjack may work on other platforms, however it is not tested on any others.
 
-##Installation
+## Installation
+
 You can add Lumberjack to your project by installing it using Yarn or NPM:
 
 ```bash
@@ -25,7 +27,8 @@ npm --save @shopfront/lumberjack
 Lumberjack is written in Typescript so you have the power of TypeScript definitions available to be used within
 your IDE or text editor. You, however, are not required to use TypeScript when working with Lumberjack (but can).
 
-##Examples
+## Examples
+
 Lumberjack has been designed to be a drop in replacement for the global `console` object. You can use most of the
 methods available on the `console` object on Lumberjack.
 
@@ -73,7 +76,8 @@ revertConsole();
 lumberjack.revert();
 ```
 
-##Method Reference
+## Method Reference
+
 ```javascript
 const lumberjack = new Lumberjack(backend, options);
 ```
@@ -144,7 +148,7 @@ lumberjack.group(groupTitle)
 lumberjack.groupCollapsed(groupTitle)
 ```
 
-This groups all of the next logs (until `groupEnd` is called) and increases the namespace with the `groupTitle`.
+This groups all the next logs (until `groupEnd` is called) and increases the namespace with the `groupTitle`.
 Groups can be nested.
 
 *Arguments:*
@@ -209,17 +213,19 @@ Log a stack trace.
 
 *Returns:* None.
 
-##Back-ends
+## Back-ends
+
 Please see the table below for current back-ends. If you have developed a back-end and would like promote it, please
 create a pull request and add it to the below table:
 
 
-| Name | Author | Browsers | Node.js |
-| --- | --- | :---: | :---: |
-| [IndexedDB](#indexeddb-for-browsers) | [Shopfront](https://shopfront.com.au) | ✓ | ✗ |
-| [File](#file-for-nodejs) | [Shopfront](https://shopfront.com.au) | ✗ | ✓ |
+| Name                                 | Author                                | Browsers | Node.js |
+|--------------------------------------|---------------------------------------|:--------:|:-------:|
+| [IndexedDB](#indexeddb-for-browsers) | [Shopfront](https://shopfront.com.au) |    ✓     |    ✗    |
+| [File](#file-for-nodejs)             | [Shopfront](https://shopfront.com.au) |    ✗     |    ✓    |
 
-###Creating Your Own Back-end
+### Creating Your Own Back-end
+
 You can create your own back-end by extending the `BaseBackend` class and implementing the log function:
 
 ```javascript
@@ -239,10 +245,11 @@ The log function should not return anything (anything it does return is ignored)
   - `details.namespaces`: Array of Strings - The namespaces that this message occurred in,
   - `details.level`: One of "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG" - What level the message occurred at
 
-As the return value for the log function is ignored, if you need to perform an asynchronous action, we would suggest building
-a queue, you can reference the IndexedDBBackend.ts file to see how we accomplished this.
+As the return value for the log function is ignored, if you need to perform an asynchronous action, we would suggest 
+building a queue, you can reference the `IndexedDBBackend.ts` file to see how we accomplished this.
 
-###IndexedDB (for browsers)
+### IndexedDB (for browsers)
+
 You can store the logs generated from Lumberjack in IndexedDB by using the IndexedDBBackend provided by Shopfront.
 
 ```javascript
@@ -259,9 +266,11 @@ The `IndexedDBBackend` constructor accepts an object that contains the following
 
 - `expire`: (Optional) Null or Number - If null, logs will never expire, if a number, it is the number of seconds until
 a log expires and will be deleted. This defaults to 7 days.
-- `flushTimer`: (Optional) Number - The interval to flush items to IndexedDB. This defaults to 5 seconds. 
+- `flushTimer`: (Optional) Number - The interval to flush items to IndexedDB. This defaults to 5 seconds.
+- `minimumRecordsToCompress`: (Optional) Number - Compress the logs when there are at least this many to flush if the 
+*Compression Streams API* is supported in the current browser. This defaults to 10. 
 
-The `IndexedDBBackend` also includes an export function which retrieves all of the stored logs. It has the following
+The `IndexedDBBackend` also includes an export function which retrieves all the stored logs. It has the following
 signature:
 
 ```javascript
@@ -277,9 +286,10 @@ const logs = await backend.export();
 - `level`: One of "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG" - What level the message occurred at,
 - `message`: String - The message that was logged
 
-###File (for Node.js)
-When using Node.js you can store the logs generated from Lumberjack in a single flat file by using the FileBackend provided
-by Shopfront.
+### File (for Node.js)
+
+When using Node.js you can store the logs generated from Lumberjack in a single flat file by using the `FileBackend`
+provided by Shopfront.
 
 ```javascript
 import { Lumberjack } from "@shopfront/lumberjack";
@@ -293,5 +303,5 @@ const lumberjack = new Lumberjack(backend);
 
 The `FileBackend` constructor accepts an object that contains the following options:
 
-- `file`: (Optional) String - The file to store the logs in, this defaults to a file called *lumberjack.log* in the current
-working directory.
+- `file`: (Optional) String - The file to store the logs in, this defaults to a file called *lumberjack.log* in the 
+current working directory.
