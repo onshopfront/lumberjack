@@ -269,6 +269,8 @@ a log expires and will be deleted. This defaults to 7 days.
 - `flushTimer`: (Optional) Number - The interval to flush items to IndexedDB. This defaults to 5 seconds.
 - `minimumRecordsToCompress`: (Optional) Number - Compress the logs when there are at least this many to flush if the 
 *Compression Streams API* is supported in the current browser. This defaults to 10. 
+- `maxNumberOfLogs`: (Optional) Number - The maximum number of logs to store, if the number of logs in the database
+exceeds this, then the oldest logs will be deleted until this many are left. This defaults to 100,000
 
 The `IndexedDBBackend` also includes an export function which retrieves all the stored logs. It has the following
 signature:

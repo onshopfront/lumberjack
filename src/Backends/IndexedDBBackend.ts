@@ -5,6 +5,7 @@ interface IndexedDBBackendOptions {
     expire: null | number;
     flushTimer: number;
     minimumRecordsToCompress: number;
+    maxNumberOfLogs: null | number;
 }
 
 type StoredDetails = Omit<LogDetails, "timestamp"> & {
@@ -29,6 +30,7 @@ export class IndexedDBBackend extends BaseBackend {
             expire                  : 7 * 24 * 60 * 60 * 1000, // 7 Days
             flushTimer              : 5000, // 5 seconds
             minimumRecordsToCompress: 10,
+            maxNumberOfLogs         : 100000,
             ...options,
         };
 
@@ -79,28 +81,50 @@ export class IndexedDBBackend extends BaseBackend {
             return;
         }
 
-        if(this.options.expire === null) {
-            return; // Don't expire the logs
+        if(this.options.expire !== null) {
+            const oldest      = Date.now() - this.options.expire;
+            const range       = IDBKeyRange.upperBound(oldest, true);
+            const objectStore = this.indexedDB.transaction("logs", "readwrite").objectStore("logs");
+            const index       = objectStore.index("timestamp");
+            const storeCursor = index.openCursor(range);
+
+            storeCursor.onerror = event => {
+                this.global.console.error("Lumberjack: Could not clear old logs (timestamp)", event);
+            };
+
+            storeCursor.onsuccess = event => {
+                const cursor = (event.target as IDBRequest).result;
+                if(cursor) {
+                    const request = cursor.delete();
+
+                    request.onsuccess = () => cursor.continue();
+                }
+            };
         }
 
-        const oldest      = Date.now() - this.options.expire;
-        const range       = IDBKeyRange.upperBound(oldest, true);
-        const objectStore = this.indexedDB.transaction("logs", "readwrite").objectStore("logs");
-        const index       = objectStore.index("timestamp");
-        const storeCursor = index.openCursor(range);
+        if(this.options.maxNumberOfLogs !== null && this.options.maxNumberOfLogs < Infinity) {
+            const maxNumberOfLogs = this.options.maxNumberOfLogs;
+            const objectStore = this.indexedDB.transaction("logs", "readwrite").objectStore("logs");
+            const storeCursor = objectStore.openCursor(null, "prev");
 
-        storeCursor.onerror = event => {
-            this.global.console.error("Lumberjack: Could not clear old logs", event);
-        };
+            let numberLookedAt = 0;
+            storeCursor.onerror = event => {
+                this.global.console.error("Lumberjack: Could not clear old logs (maximum)", event);
+            };
 
-        storeCursor.onsuccess = event => {
-            const cursor = (event.target as IDBRequest).result;
-            if(cursor) {
-                const request = cursor.delete();
-
-                request.onsuccess = () => cursor.continue();
-            }
-        };
+            storeCursor.onsuccess = event => {
+                const cursor = (event.target as IDBRequest).result;
+                numberLookedAt++;
+                if(cursor) {
+                    if(numberLookedAt > maxNumberOfLogs) {
+                        const request = cursor.delete();
+                        request.onsuccess = () => cursor.continue();
+                    } else {
+                        cursor.continue();
+                    }
+                }
+            };
+        }
     }
 
     /**
