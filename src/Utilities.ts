@@ -114,6 +114,10 @@ export function intersectArrays(...arrays: Array<Array<any>>): Array<any> {
 export function encode(item: any): string {
     if (!item) {
         return "";
+    } else if(item instanceof Error) {
+        return `Error: ${
+            JSON.stringify(item, Object.getOwnPropertyNames(item))
+        }, Constructor: ${item.constructor.name}`;
     } else if(typeof item === "object") {
         const encoded = JSON.stringify(item);
         if(encoded === "{}" && Object.keys(item).length !== 0) {
