@@ -10,4 +10,5 @@ export interface LogDetails {
 
 export abstract class BaseBackend {
     public abstract log(message: string, details: LogDetails): void;
+    public abstract flush(): Promise<void>;
 }

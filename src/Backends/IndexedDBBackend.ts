@@ -22,8 +22,8 @@ export class IndexedDBBackend extends BaseBackend {
     constructor(options: Partial<IndexedDBBackendOptions> = {}) {
         super();
 
-        this.flush   = this.flush.bind(this);
-        this.global  = Utilities.getGlobal();
+        this.flushToDatabase = this.flushToDatabase.bind(this);
+        this.global = Utilities.getGlobal();
         this.toFlush = [];
 
         this.options = {
@@ -131,14 +131,14 @@ export class IndexedDBBackend extends BaseBackend {
      * Prepare to flush the logs to the database
      */
     protected setupFlush(): void {
-        setInterval(this.flush, this.options.flushTimer);
-        this.global.addEventListener("beforeunload", this.flush);
+        setInterval(this.flushToDatabase, this.options.flushTimer);
+        this.global.addEventListener("beforeunload", this.flushToDatabase);
     }
 
     /**
      * Flush the logs to the database
      */
-    protected flush(): void {
+    protected async flushToDatabase(): Promise<void> {
         if(this.toFlush.length === 0) {
             return;
         }
@@ -147,43 +147,56 @@ export class IndexedDBBackend extends BaseBackend {
             return;
         }
 
-        const data   = this.toFlush;
+        const data = this.toFlush;
         this.toFlush = [];
+
+        let addData: (dataStore: IDBObjectStore) => void;
 
         if(typeof CompressionStream !== "undefined" && data.length >= this.options.minimumRecordsToCompress) {
             const stream = new CompressionStream("deflate");
             const bytes  = new TextEncoder().encode(JSON.stringify(data));
             const writer = stream.writable.getWriter();
 
-            void writer.write(bytes);
-            void writer.close();
-            (new Response(stream.readable)).arrayBuffer()
-                .then(buffer => {
-                    if(!(this.indexedDB instanceof this.global.IDBDatabase)) {
-                        return;
-                    }
+            await writer.write(bytes);
+            await writer.close();
+            const buffer = await (new Response(stream.readable)).arrayBuffer();
 
-                    const transaction = this.indexedDB.transaction(["logs"], "readwrite");
-                    transaction.onerror = event => {
-                        this.global.console.error("Lumberjack: Could not write data to IndexedDB", event);
-                        this.toFlush.push(...data);
-                    };
-
-                    const logs = transaction.objectStore("logs");
-                    logs.add(buffer);
-                });
+            addData = dataStore => dataStore.add({ timestamp: Date.now(), buffer });
         } else {
+            addData = dataStore => {
+                for(let i = 0, l = data.length; i < l; i++) {
+                    dataStore.add(data[i]);
+                }
+            };
+        }
+
+        return new Promise((res, rej) => {
+            if(!(this.indexedDB instanceof this.global.IDBDatabase)) {
+                return res();
+            }
+
             const transaction = this.indexedDB.transaction(["logs"], "readwrite");
             transaction.onerror = event => {
                 this.global.console.error("Lumberjack: Could not write data to IndexedDB", event);
                 this.toFlush.push(...data);
+
+                rej();
+            };
+
+            transaction.oncomplete = () => {
+                res();
             };
 
             const logs = transaction.objectStore("logs");
-            for(let i = 0, l = data.length; i < l; i++) {
-                logs.add(data[i]);
-            }
-        }
+            addData(logs);
+        });
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public flush(): Promise<void> {
+        return this.flushToDatabase();
     }
 
     /**
@@ -241,7 +254,13 @@ export class IndexedDBBackend extends BaseBackend {
             opened.onsuccess = event => {
                 const cursor = (event.target as IDBRequest).result;
                 if(cursor) {
-                    if(cursor.value instanceof ArrayBuffer) {
+                    if("buffer" in cursor.value && cursor.value.buffer instanceof ArrayBuffer) {
+                        this.decompress(cursor.value.buffer)
+                            .then(content => {
+                                data.push(...content);
+                                cursor.continue();
+                            });
+                    } else if(cursor.value instanceof ArrayBuffer) {
                         this.decompress(cursor.value)
                             .then(content => {
                                 data.push(...content);
@@ -292,7 +311,16 @@ export class IndexedDBBackend extends BaseBackend {
             opened.onsuccess = event => {
                 const cursor = (event.target as IDBRequest).result;
                 if(cursor) {
-                    if(cursor.value instanceof ArrayBuffer) {
+                    if("buffer" in cursor.value && cursor.value.buffer instanceof ArrayBuffer) {
+                        this.decompress(cursor.value.buffer)
+                            .then(content => {
+                                buffered.push(...content);
+                                sendBuffered();
+                            });
+
+                        cursor.continue();
+                        return;
+                    } else if(cursor.value instanceof ArrayBuffer) {
                         this.decompress(cursor.value)
                             .then(content => {
                                 buffered.push(...content);
