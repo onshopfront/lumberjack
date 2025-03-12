@@ -12,6 +12,7 @@ export class FileBackend extends BaseBackend {
     protected options: FileBackendOptions;
     protected stream?: fs.WriteStream;
     protected ready  : boolean;
+    protected flushed: boolean;
     protected waiting: Array<string>;
 
     constructor(options: Partial<FileBackendOptions> = {}) {
@@ -19,6 +20,7 @@ export class FileBackend extends BaseBackend {
 
         this.global  = Utilities.getGlobal();
         this.ready   = false;
+        this.flushed = false;
         this.waiting = [];
         this.options = {
             file: path.resolve(process.cwd(), "./lumberjack.log"),
@@ -32,6 +34,7 @@ export class FileBackend extends BaseBackend {
      * Setup the file to write to
      */
     protected setup(): void {
+        this.flushed = false;
         this.stream = fs.createWriteStream(this.options.file);
 
         this.stream.on("ready", () => {
@@ -48,6 +51,10 @@ export class FileBackend extends BaseBackend {
     protected write(messages: Array<string>): void {
         if(messages.length === 0) {
             return;
+        }
+
+        if(this.flushed) {
+            this.setup();
         }
 
         if(!this.ready) {
@@ -80,5 +87,26 @@ export class FileBackend extends BaseBackend {
      */
     public log(message: string, details: LogDetails): void {
         this.write([message]);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public flush(): Promise<void> {
+        return new Promise((res, rej) => {
+            this.ready = false;
+
+            if(!this.stream) {
+                this.flushed = true;
+                res();
+
+                return;
+            }
+
+            this.stream.end(() => {
+                this.flushed = true;
+                res();
+            });
+        });
     }
 }

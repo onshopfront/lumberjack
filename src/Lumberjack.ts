@@ -433,4 +433,11 @@ export class Lumberjack {
         this.console.warn(message, ...optionalParams);
         this.sendToBackend(VerbosityLevel.WARNING, message, optionalParams);
     }
+
+    /**
+     * Flush the contents, typically used before exiting
+     */
+    public flush(): Promise<void> {
+        return this.backend.flush();
+    }
 }
