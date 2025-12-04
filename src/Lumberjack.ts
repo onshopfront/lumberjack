@@ -44,6 +44,7 @@ export class Lumberjack {
         this.timeEnd        = this.timeEnd.bind(this);
         this.trace          = this.trace.bind(this);
         this.warn           = this.warn.bind(this);
+        this.timeStamp      = this.timeStamp.bind(this);
     }
 
     /**
@@ -406,6 +407,13 @@ export class Lumberjack {
         const difference = timer.getTime() - now.getTime();
 
         this.sendToBackend(VerbosityLevel.NOTICE, this.decorateMessage(`Ended timer "${label}", time taken was ${difference} seconds`), []);
+    }
+
+    /**
+     * Pass the timeStamp call along to the console
+     */
+    public timeStamp(...args: Array<unknown>): void {
+        this.console.timeStamp(...args);
     }
 
     /**
